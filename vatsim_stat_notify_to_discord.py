@@ -64,17 +64,17 @@ def get_discord_embed(connect_type, atc_info):
     if connect_type == "connect":
         embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0x00ff00, description = atc_info['callsign'] + ' is now online.' )
         embed.set_footer(text = 'Made by Sungho-Kim (source on github.com/lancard)')
-        embed.add_field(name = 'Server', value = atc_info["server"])
-        embed.add_field(name = 'CID', value = atc_info["cid"])
         embed.add_field(name = 'Rating', value = rating_list[atc_info["rating"]])
+        embed.add_field(name = 'CID', value = atc_info["cid"])
+        embed.add_field(name = 'Server', value = atc_info["server"])
         return embed
 
     if connect_type == "disconnect":
         embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0xff0000, description = atc_info['callsign'] + ' is now offline.' )
         embed.set_footer(text = 'Made by Sungho-Kim (source on github.com/lancard)')
-        embed.add_field(name = 'Server', value = atc_info["server"])
-        embed.add_field(name = 'CID', value = atc_info["cid"])
         embed.add_field(name = 'Rating', value = rating_list[atc_info["rating"]])
+        embed.add_field(name = 'CID', value = atc_info["cid"])
+        embed.add_field(name = 'Server', value = atc_info["server"])
         return embed
 
 
