@@ -10,7 +10,8 @@ config.read("settings.ini")
 
 vatsim_stat_json_url = config["VATSIM_CONFIG"]["vatsim_stat_json_url"]
 vatsim_stat_retrieve_period = float(config["VATSIM_CONFIG"]["vatsim_stat_retrieve_period"])
-vatsim_controller_callsign_prefix = config["VATSIM_CONFIG"]["vatsim_controller_callsign_prefix"]
+vatsim_controller_callsign_include_prefix = config["VATSIM_CONFIG"]["vatsim_controller_callsign_include_prefix"]
+vatsim_controller_callsign_exclude_string = config["VATSIM_CONFIG"]["vatsim_controller_callsign_exclude_string"]
 
 discord_bot_client_token = config["DISCORD_CONFIG"]["discord_bot_client_token"]
 discord_channel_id = int(config["DISCORD_CONFIG"]["discord_channel_id"])
@@ -52,10 +53,12 @@ def get_controllers():
     disconnected_controllers = { k : old_stat[k] for k in set(old_stat) - set(new_stat) }
 
     # filter
-    filtered_connected_controllers = { d: connected_controllers[d] for d in connected_controllers if connected_controllers[d]['callsign'].startswith(vatsim_controller_callsign_prefix) }
-    filtered_disconnected_controllers = { d: disconnected_controllers[d] for d in disconnected_controllers if disconnected_controllers[d]['callsign'].startswith(vatsim_controller_callsign_prefix) }
+    connected_controllers = { d: connected_controllers[d] for d in connected_controllers if connected_controllers[d]['callsign'].startswith(vatsim_controller_callsign_include_prefix) }
+    connected_controllers = { d: connected_controllers[d] for d in connected_controllers if vatsim_controller_callsign_exclude_string not in connected_controllers[d]['callsign'] }
+    disconnected_controllers = { d: disconnected_controllers[d] for d in disconnected_controllers if disconnected_controllers[d]['callsign'].startswith(vatsim_controller_callsign_include_prefix) }
+    disconnected_controllers = { d: disconnected_controllers[d] for d in disconnected_controllers if vatsim_controller_callsign_exclude_string not in disconnected_controllers[d]['callsign'] }
 
-    return filtered_connected_controllers, filtered_disconnected_controllers
+    return connected_controllers, disconnected_controllers
 
 
 
