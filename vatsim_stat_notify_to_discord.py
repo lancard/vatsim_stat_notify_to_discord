@@ -3,6 +3,8 @@ import asyncio
 import requests
 import json
 import configparser
+import re
+import traceback
 
 # load config
 config = configparser.ConfigParser()
@@ -53,17 +55,20 @@ def get_controllers():
     disconnected_controllers = { k : old_stat[k] for k in set(old_stat) - set(new_stat) }
 
     # filter
-    connected_controllers = { d: connected_controllers[d] for d in connected_controllers if pattern.match(connected_controllers[d]['callsign']) is not None }
-    disconnected_controllers = { d: disconnected_controllers[d] for d in disconnected_controllers if pattern.match(disconnected_controllers[d]['callsign']) is not None }
-
-    return connected_controllers, disconnected_controllers
-
+    connected_controllers = { d: connected_controllers[d] for d in connected_controllers if pattern.match(connected_controllers[d]['callsign']) is not None and connected_controllers[d]["rating"]>1 }
+    disconnected_controllers = { d: disconnected_controllers[d] for d in disconnected_controllers if pattern.match(disconnected_controllers[d]['callsign']) is not None and disconnected_controllers[d]["rating"]>1 }
+    all_controllers = { d: new_stat[d] for d in new_stat if pattern.match(new_stat[d]['callsign']) is not None and new_stat[d]["rating"]>1 }
 
 
-def get_discord_embed(connect_type, atc_info):
+    return all_controllers, connected_controllers, disconnected_controllers
 
+
+
+def get_discord_embed(connect_type, atc_info, current_list):
+    
     if connect_type == "connect":
-        embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0x00ff00, description = atc_info['callsign'] + ' is now online.' )
+        current_list = [ "{}({})".format(current_list[d]["callsign"], current_list[d]["frequency"]) for d in current_list ]
+        embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0x00ff00, description = '< online list >\n' + '\n'.join(current_list))
         embed.set_footer(text = 'Made by Sungho-Kim (source on github.com/lancard)')
         embed.add_field(name = 'Rating', value = rating_list[atc_info["rating"]])
         embed.add_field(name = 'CID', value = atc_info["cid"])
@@ -71,7 +76,8 @@ def get_discord_embed(connect_type, atc_info):
         return embed
 
     if connect_type == "disconnect":
-        embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0xff0000, description = atc_info['callsign'] + ' is now offline.' )
+        current_list = [ "{}({})".format(current_list[d]["callsign"], current_list[d]["frequency"]) for d in current_list ]
+        embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0xff0000, description = '< online list >\n' + '\n'.join(current_list))
         embed.set_footer(text = 'Made by Sungho-Kim (source on github.com/lancard)')
         embed.add_field(name = 'Rating', value = rating_list[atc_info["rating"]])
         embed.add_field(name = 'CID', value = atc_info["cid"])
@@ -84,17 +90,17 @@ async def run():
 
     while not client.is_closed():
         try:
-            connected_controllers, disconnected_controllers = get_controllers()
+            all_controllers, connected_controllers, disconnected_controllers = get_controllers()
 
             channel = client.get_channel(discord_channel_id)
 
             for a in connected_controllers:
-                await channel.send(embed = get_discord_embed('connect', connected_controllers[a]))
+                await channel.send(embed = get_discord_embed('connect', connected_controllers[a], all_controllers))
             for a in disconnected_controllers:
-                await channel.send(embed = get_discord_embed('disconnect', disconnected_controllers[a]))
+                await channel.send(embed = get_discord_embed('disconnect', disconnected_controllers[a], all_controllers))
 
         except Exception as e:
-            print(e)
+                traceback.print_exc()
 
         finally:
             await asyncio.sleep(vatsim_stat_retrieve_period)
