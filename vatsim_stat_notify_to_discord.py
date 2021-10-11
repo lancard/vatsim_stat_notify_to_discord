@@ -67,7 +67,7 @@ def get_controllers():
 def get_discord_embed(connect_type, atc_info, current_list):
     
     if connect_type == "connect":
-        current_list = [ "{}({})".format(current_list[d]["callsign"], current_list[d]["frequency"]) for d in current_list ]
+        current_list = [ "{}{}".format(current_list[d]["callsign"], "("+current_list[d]["frequency"]+")" if current_list[d]["frequency"] != "199.998" else "") for d in current_list ]
         embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0x00ff00, description = '< online list >\n' + '\n'.join(current_list))
         embed.set_footer(text = 'Made by Sungho-Kim (source on github.com/lancard)')
         embed.add_field(name = 'Rating', value = rating_list[atc_info["rating"]])
@@ -76,7 +76,7 @@ def get_discord_embed(connect_type, atc_info, current_list):
         return embed
 
     if connect_type == "disconnect":
-        current_list = [ "{}({})".format(current_list[d]["callsign"], current_list[d]["frequency"]) for d in current_list ]
+        current_list = [ "{}{}".format(current_list[d]["callsign"], "("+current_list[d]["frequency"]+")" if current_list[d]["frequency"] != "199.998" else "") for d in current_list ]
         embed = discord.Embed( title = atc_info['callsign'] + ' - ' + connect_type, color = 0xff0000, description = '< online list >\n' + '\n'.join(current_list))
         embed.set_footer(text = 'Made by Sungho-Kim (source on github.com/lancard)')
         embed.add_field(name = 'Rating', value = rating_list[atc_info["rating"]])
